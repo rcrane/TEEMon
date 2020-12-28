@@ -1,0 +1,19 @@
+global:
+  scrape_interval:     10s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'targets'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    # ebpf_exporter:9440, sgx_exporter:9441, node-exporter:9442, cadvisor:9443, stack-exporter:9440
+    static_configs:
+      - targets: ['0.0.0.0:9440', '0.0.0.0:9441','0.0.0.0:9442','0.0.0.0:9443']

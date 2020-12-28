@@ -1,0 +1,97 @@
+version: '3.1'
+
+
+services:
+
+  ebpf-exporter:
+    image: ebpf_exporter:latest
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /sys:/sys:ro
+      - /usr/src:/usr/src:ro
+      - ./exporters/ebpf_exporter/configfile:/etc/ebpf_exporter
+    privileged: true
+    ports:
+      - 9440:9440
+    command: 
+      - '--config.file=/etc/ebpf_exporter/sgx.yaml'
+      - '--web.listen-address=0.0.0.0:9440'
+    restart: unless-stopped
+  
+  sgx-exporter:
+    image: sgx_exporter:latest
+    volumes: 
+      - /sys:/host/sys:ro
+    ports:
+      - 9441:9441
+    environment: 
+      - LISTENING_PORT=9441
+    restart: unless-stopped
+  
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - '--web.listen-address=0.0.0.0:9442'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9442:9442
+    restart: unless-stopped
+    cap_add:
+    - SYS_TIME
+
+  cadvisor:
+    image: google/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro 
+    command:
+      - '--port=9443'
+      - '-listen_ip=0.0.0.0'
+    ports:
+      - 9443:9443
+      - 8080:8080
+    environment: 
+        - PORT=9443
+    privileged: true
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:6.5.0
+    network_mode: host
+    ports:
+      - 9091:9091
+    volumes:
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/config:/var/lib/grafanaconf
+    env_file:
+      - ./grafana/config.monitoring
+    user: "${CURRENT_UID}"
+    restart: "unless-stopped"
+
+  prometheus:
+    image: prom/prometheus:v2.8.1
+    network_mode: host
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - ./prometheus/storage/:/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    user: "${CURRENT_UID}"
+    restart: "unless-stopped"
+
+

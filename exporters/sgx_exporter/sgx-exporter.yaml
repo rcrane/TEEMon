@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: sgx-exporter
+  labels:
+    k8s-app: sgx-exporter
+spec:
+  selector:
+    matchLabels:
+      app: sgx-exporter
+  template:
+    metadata:
+      labels:
+        app: sgx-exporter
+    spec:
+      volumes:
+      - name: host-sys
+        hostPath:
+          path: /sys
+      containers:
+      - name: sgx-exporter
+        image: sgx-exporter-image
+        imagePullPolicy: Always
+        env:
+          - name: LISTENING_PORT
+            value: "53589"
+        tty: true
+        volumeMounts:
+        - mountPath: /host/sys
+          name: host-sys
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 53589
+          hostPort: 53589
+          protocol: TCP
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      hostNetwork: true
