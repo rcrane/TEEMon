@@ -20,7 +20,7 @@ type Program struct {
 
 // PerfEvent describes perf_event to attach to
 type PerfEvent struct {
-	Type            int    `yaml:"string"`
+	Type            int    `yaml:"type"`
 	Name            int    `yaml:"name"`
 	Target          string `yaml:"target"`
 	SamplePeriod    int    `yaml:"sample_period"`
@@ -50,6 +50,7 @@ type Histogram struct {
 	BucketMultiplier float64             `yaml:"bucket_multiplier"`
 	BucketMin        int                 `yaml:"bucket_min"`
 	BucketMax        int                 `yaml:"bucket_max"`
+	BucketKeys       []float64           `yaml:"bucket_keys"`
 	Labels           []Label             `yaml:"labels"`
 }
 
@@ -63,9 +64,10 @@ type Label struct {
 
 // Decoder defines how to decode value
 type Decoder struct {
-	Name      string            `yaml:"name"`
-	StaticMap map[string]string `yaml:"static_map"`
-	Regexps   []string          `yaml:"regexps"`
+	Name         string            `yaml:"name"`
+	StaticMap    map[string]string `yaml:"static_map"`
+	Regexps      []string          `yaml:"regexps"`
+	AllowUnknown bool              `yaml:"allow_unknown"`
 }
 
 // HistogramBucketType is an enum to define how to interpret histogram
@@ -76,4 +78,6 @@ const (
 	HistogramBucketExp2 = "exp2"
 	// HistogramBucketLinear means histogram with linear keys
 	HistogramBucketLinear = "linear"
+	// HistogramBucketFixed means histogram with fixed user-defined keys
+	HistogramBucketFixed = "fixed"
 )

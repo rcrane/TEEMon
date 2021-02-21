@@ -3,6 +3,7 @@ package decoder
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/cloudflare/ebpf_exporter/config"
 )
@@ -19,6 +20,7 @@ type Decoder interface {
 
 // Set is a set of Decoders that may be applied to produce a label
 type Set struct {
+	mu       sync.Mutex
 	decoders map[string]Decoder
 }
 
@@ -26,11 +28,13 @@ type Set struct {
 func NewSet() *Set {
 	return &Set{
 		decoders: map[string]Decoder{
+			"cgroup":     &CGroup{},
 			"ksym":       &KSym{},
 			"majorminor": &MajorMinor{},
 			"regexp":     &Regexp{},
 			"static_map": &StaticMap{},
 			"string":     &String{},
+			"dname":      &Dname{},
 			"uint":       &UInt{},
 			"inet_ip":    &InetIP{},
 		},
@@ -46,7 +50,9 @@ func (s *Set) Decode(in []byte, label config.Label) ([]byte, error) {
 			return result, fmt.Errorf("unknown decoder %q", decoder.Name)
 		}
 
+		s.mu.Lock()
 		decoded, err := s.decoders[decoder.Name].Decode(result, decoder)
+		s.mu.Unlock()
 		if err != nil {
 			if err == ErrSkipLabelSet {
 				return decoded, err
