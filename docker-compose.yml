@@ -67,7 +67,7 @@ services:
 
   grafana:
     image: grafana/grafana:6.5.0
-    network_mode: host
+#    network_mode: host
     ports:
       - 9091:9091
     volumes:
@@ -80,7 +80,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.8.1
-    network_mode: host
+#    network_mode: host
     volumes:
       - ./prometheus/:/etc/prometheus/
       - ./prometheus/storage/:/prometheus/
