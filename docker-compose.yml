@@ -68,8 +68,8 @@ services:
   grafana:
     image: grafana/grafana:6.5.0
     network_mode: host
-    ports:
-      - 9091:9091
+#    ports:
+#      - 9091:9091
     volumes:
       - ./grafana/provisioning/:/etc/grafana/provisioning/
       - ./grafana/config:/var/lib/grafanaconf
@@ -89,8 +89,8 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - 9090:9090
+#    ports:
+#      - 9090:9090
     user: "${CURRENT_UID}"
     restart: "unless-stopped"
 
